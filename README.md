@@ -4,7 +4,7 @@ This repository contains my work in **analog design, power electronics, and cont
 
 ---
 
-## 🔥 Project 1: Analog Thermal Fan Controller
+## 🔥 Project 1: Analog Temperature Controller
 
 A fully analog temperature-based fan control system designed for stable and noise-resilient operation.
 
