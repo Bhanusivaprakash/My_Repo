@@ -10,11 +10,10 @@ A fully analog temperature-based fan control system designed for stable and nois
 
 ### Key Highlights:
 
-* Designed using a **comparator with hysteresis** to eliminate output chatter near threshold temperatures
 * Implemented **MOSFET-based fan driving** for efficient switching
 * Modeled temperature sensor behavior using **LTSpice behavioral voltage source (LM35 equivalent)**
-* Tuned hysteresis band to ensure **stable operation under noisy and fluctuating thermal conditions**
-* Focused on **practical issues like noise immunity and switching stability**, not just ideal behavior
+* Tuned hysteresis band to maintain a **stable average output voltage under noisy and fluctuating thermal conditions**
+* Designed by considering the **practical issues like noise immunity and switching stability**, not just ideal behavior
 
 ### Status:
 
