@@ -42,23 +42,20 @@ A three-phase inverter system designed using sinusoidal PWM concepts for motor c
 
 ---
 
-## ⚙️ Project 3: DC-DC Buck Converter (12V → 10V)
+⚙️ Project 3: Buck Converter with Current Sensing (12V → 3.3V)
 
-A switching regulator design focused on understanding high duty-cycle behavior and practical power circuit considerations.
+A switching regulator design focused on real-world power delivery, current monitoring, and practical hardware considerations.
 
-### Key Highlights:
-
-* Designed a **12V → 10V buck converter** using the **ADP2300 regulator IC**
-* Followed **datasheet-recommended application circuit** for implementation
-* Observed **high duty-cycle operation** and its impact on switching intervals
-* Implemented **over-current protection** using shunt-based current sensing
-* Simulated **switching behavior and output ripple** in LTSpice
-* Focused on **PCB layout practices** including loop minimization and grounding
-
-### Status:
-
-* ✅ Simulation completed in LTSpice
-* 🛠 Hardware validation in progress
+Key Highlights:
+Designed a 12V → 3.3V buck converter using the ADP2300
+Integrated current sensing using LT6105 with low-side shunt resistor
+Generated a scaled analog current signal (~2 V/A) for monitoring and control applications
+Followed datasheet-recommended application circuit and validated switching behavior in LTSpice
+Observed switching characteristics, duty cycle behavior, and output ripple
+Incorporated PCB layout considerations including high di/dt loop minimization and proper grounding strategy
+Status:
+✅ Simulation completed in LTSpice
+🛠 PCB design and hardware validation in progress
 
 ---
 
