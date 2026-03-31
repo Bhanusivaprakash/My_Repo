@@ -18,7 +18,7 @@ A fully analog temperature-based fan control system designed for stable and nois
 ### Status:
 
 * ✅ Simulation completed in LTSpice
-* 🛠 PCB design in progress
+* 🛠 Designed the PCB, hardware validation in progress
 
 ---
 
@@ -57,7 +57,7 @@ A DC-DC Buck Converter with integrated current sensing for monitoring and contro
 ### Status:
 
 * ✅ Simulation completed in LTSpice
-* 🛠 Hardware validation in progress
+* 🛠 Designed the PCB, hardware validation in progress.
 
 ---
 
