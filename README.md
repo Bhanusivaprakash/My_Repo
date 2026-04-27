@@ -24,7 +24,7 @@ A fully analog temperature-based fan control system designed for stable and nois
 
 ## ⚡ Project 2: 3-Phase SPWM Inverter (Motor Driver)
 
-A three-phase inverter system designed using sinusoidal PWM concepts for motor control applications.
+A three-phase inverter system designed using sinusoidal PWM for motor control applications.
 
 ### Key Highlights:
 
@@ -37,7 +37,7 @@ A three-phase inverter system designed using sinusoidal PWM concepts for motor c
 ### Status:
 
 * ✅ Simulation validated (waveforms verified)
-* 🛠 PCB layout in progress
+* 🛠 Designed the PCB, hardware validation in progress
 
 ---
 
