@@ -1,150 +1,294 @@
+module coprocessor(
 
-module tb_coprocessor;
+    input wire clk,
+    input wire signed [15:0] data_in,
+    output reg signed [15:0] data_out,
+    output reg error,
+    input wire write_enable,
+    input wire read_enable,
+    input wire rst,
+    input wire [4:0] operation,
+    input wire address_enable,
+    input wire [4:0] address,
+    input wire execute,
+    output reg done
 
-reg clk;
-reg signed [15:0] data_in;
-wire signed [15:0] data_out;
-reg write_enable, read_enable, rst, execute;
-reg [4:0] operation;
-reg address_enable;
-reg [4:0] address;
-wire done;
-wire error;
-
-coprocessor cp(
-    .clk(clk),
-    .data_in(data_in),
-    .data_out(data_out),
-    .error(error),
-    .write_enable(write_enable),
-    .read_enable(read_enable),
-    .rst(rst),
-    .operation(operation),
-    .address_enable(address_enable),
-    .address(address),
-    .execute(execute),
-    .done(done)
 );
 
-initial clk = 0;
-always #5 clk = ~clk;
-
-task write;
-    input signed [15:0] value;
-    begin
-        @(negedge clk);
-        write_enable = 1;
-        data_in = value;
-
-        @(posedge clk);   // DUT samples
-
-        @(negedge clk);
-        write_enable = 0;
-    end
-endtask
-
-task load;
-input [4:0] opcode;
-input [4:0] addr;
-begin
-    @(negedge clk);
-    operation      = opcode;
-    address        = addr;
-    address_enable = 1;
-
-    @(posedge clk);
-
-    @(negedge clk);
-    address_enable = 0;
-end
-endtask
-
-task exec;
-begin
-    @(negedge clk);
-    execute = 1;
-
-    wait(done == 1);
-
-    @(negedge clk);
-    execute = 0;
-
-    @(posedge clk);
-end
-endtask
-
-task read;
-    begin
-        @(negedge clk);
-        read_enable = 1;
-
-        @(posedge clk);
-
-        @(negedge clk);
-        read_enable = 0;
-
-        $display("mem0=%0h mem1=%0h mem3=%0h",
-                cp.memory[0],
-                cp.memory[1],cp.memory[2]);
-
-        $display("write_ptr=%0d execution_ptr=%0d",
-                cp.write_ptr,
-                cp.execution_ptr);
-
-        $display("result=%0h",
-         data_out);
-    end
-endtask
-
-    integer j;
-
-initial begin
-    write_enable = 0;
-    read_enable  = 0;
-    execute      = 0;
-    rst          = 1;
-    data_in      = 0;
-    operation    = 0;
-    address      = 0;
-
-    repeat(2) @(posedge clk);
-
-    @(negedge clk);
-    rst = 0;
-
+reg signed [31:0] memory [0:31];
+reg signed [31:0] op_memory [0:31];
     
-    write(16'h0000); // lower 16 bits
-    write(16'h0005); // upper 16 bits
+reg signed [31:0] acc = 0;
+reg signed [31:0] result = 0;
 
-    write(16'h0000); // lower 16 bits
-    write(16'h0002); // upper 16 bits
+reg word_select = 0;
+reg [4:0] write_ptr = 5'd0;
+//reg [4:0] read_ptr  = 5'd0;
+reg [4:0] execution_ptr = 5'd0;
+reg [4:0] store_ptr = 5'd0;
+reg [4:0] scalar_ptr = 5'd0;
 
-    load(4'b0100, 0);
-    exec();
+reg read_lock = 0;
+reg write_lock = 0;
 
-    load(4'b1111, 2);
-    exec();
+integer i;
+reg signed [31:0] sum_acc;
+reg signed [31:0] prod_acc = 32'h00010000;
+reg signed [63:0] temp_res;
 
-    read();
-    read();
+task ADD;
+begin
+    $display("EXEC=%d", execution_ptr);
+  if(execution_ptr < write_ptr) begin
+        sum_acc <= sum_acc + memory[execution_ptr];
+        acc <= sum_acc + memory[execution_ptr];
+        prod_acc <= sum_acc + memory[execution_ptr];
+        result <= sum_acc + memory[execution_ptr];
+        execution_ptr <= execution_ptr + 1; 
+    end  
+end
+endtask
 
-    $display("\n---------------------------------------------------");
-    $display("ADDR\tMEM\tOP_MEM");
-    $display("---------------------------------------------------");
+task SUB;
+begin
+    if(execution_ptr == 4'b0) begin
+        sum_acc = memory[execution_ptr];
+        execution_ptr <= 1;
+    end
+    else if(execution_ptr < write_ptr) begin
+        sum_acc <= sum_acc - memory[execution_ptr];
+        result  <= sum_acc - memory[execution_ptr];
+        acc <= sum_acc - memory[execution_ptr];
+        execution_ptr <= execution_ptr + 1;
+    end    
+end
+endtask
 
-    for (j = 0; j < 6; j = j + 1) begin
-        $display("[%0d]\t%0h\t\t%0h",
-                j,
-                cp.memory[j],
-                cp.op_memory[j]);
+task MUL;
+begin
+    if(execution_ptr < write_ptr) begin
+        temp_res = prod_acc * memory[execution_ptr];
+        prod_acc <= temp_res >>> 16;
+        acc <= temp_res >>> 16;
+        sum_acc <= temp_res >>> 16;
+        result <= temp_res >>> 16;
+        execution_ptr <= execution_ptr + 1;
+    end
+end
+endtask
+
+task MAC;
+begin
+    if(execution_ptr < write_ptr) begin
+        temp_res = acc + ((memory[2*execution_ptr] * memory[2*execution_ptr + 1]) >>> 16);
+        acc <= temp_res;
+        result <= temp_res;    
+        execution_ptr <= execution_ptr + 1;
+    end
+end
+endtask
+
+task DIV;
+begin
+
+    if (execution_ptr == 0) begin
+        prod_acc = memory[0];
+        
+        execution_ptr <= 1;
     end
 
-    $display("---------------------------------------------------\n");
+    else if (execution_ptr < write_ptr) begin
 
-    $display("Error = %d, Done = %d", cp.error, cp.done);
+        if (memory[execution_ptr] == 0) begin
+            error <= 1;
+        end
+        else begin
+            temp_res = (prod_acc<<<16)/memory[execution_ptr];
+            $display("TEMP=%h", prod_acc);
+            prod_acc <= temp_res;
+            acc <= temp_res;
+            sum_acc <= temp_res;
+            result <= temp_res;
+            execution_ptr <= execution_ptr + 1;
+            error <= 0;
+        end
+    end
+end
+endtask
 
-    #20;
-    $finish;
+task SQUARE;
+begin
+    temp_res = (memory[address] * memory[address]);
+    result <= temp_res >>> 16;
+end
+endtask
+
+task STORE;
+begin
+    memory[address] <= result;    
+end
+endtask
+
+task SWAP;
+reg signed [31:0] temp;
+begin
+    temp = memory[address];
+
+    memory[address]   <= memory[address + 1];
+    memory[address+1] <= temp;
+end
+endtask
+
+task ABS;
+begin
+    result <= (memory[address][31]) ? -memory[address] : memory[address];
+end
+endtask
+
+task CLEAR;
+begin
+  //  op_memory[address] <= 0;
+    sum_acc <= 0;
+    prod_acc <= 32'h00010000; // NOT 1;
+end
+endtask
+
+always @(posedge clk) begin
+
+    if(rst) begin
+        write_ptr <= 0;
+        execution_ptr <= 0;
+        data_out <= 0;
+        acc <= 0;
+        sum_acc <= 0;
+        prod_acc <= 32'h00010000; // NOT 1;
+        done <= 0;
+        word_select <= 0;
+        
+        for(i = 0; i < 32; i = i + 1) begin
+            memory[i] <= 16'h00;
+            op_memory[i] <= 16'h00;
+        end
+    end
+
+    else begin
+        // WRITE SECTION
+        if(address_enable) begin
+            execution_ptr <= address;
+        end
+
+        if(write_enable && !write_lock) begin
+            $display("WRITE: ptr=%0d data=%0d",
+             write_ptr,
+             data_in);
+            if(word_select == 0) begin
+                memory[write_ptr][15:0] <= data_in;
+                op_memory[write_ptr][15:0] <= data_in;
+                write_lock        <= 1;
+                word_select <= 1;
+            end
+            else if(word_select == 1) begin
+                memory[write_ptr][31:16] <= data_in;
+                op_memory[write_ptr][31:16] <= data_in;
+                write_ptr         <= write_ptr + 1;
+                write_lock        <= 1;
+                word_select <= 0;
+            end
+            
+        end
+        else if(!write_enable) begin
+            write_lock <= 0;
+        end
+
+        if(!execute) begin
+           // error <= 0;
+            done <= 0;
+        end
+        
+        if(execute) begin
+            case (operation)
+                4'b0000:    begin
+                    CLEAR;
+                    done <= 1;
+                end
+
+                4'b0001:    begin   //ADDITION
+                    ADD;
+                    done <= (write_ptr != 0) && (execution_ptr == write_ptr - 1);
+                end
+
+                4'b0010:    begin   //SUBTRACTION;
+                    SUB;
+                    done <= (write_ptr != 0) && (execution_ptr == write_ptr - 1);
+                end
+
+                4'b0011:    begin   //PRODUCT;
+                    MUL;
+                    done <= (write_ptr != 0) && (execution_ptr == write_ptr - 1);
+                end
+
+                4'b0100:    begin   //DIVISION;
+                    DIV;
+                    done <= (write_ptr != 0) && (execution_ptr == write_ptr - 1);
+                end
+
+                4'b0101:    begin   //SQUARE;
+                    SQUARE;
+                    //done <= (write_ptr != 0) && (scalar_ptr == write_ptr - 1);
+                    done <= 1;
+                end
+
+                4'b0110:    begin   //ABS;
+                    ABS;
+                    //done <= (write_ptr != 0) && (execution_ptr == write_ptr - 1);
+                    done <= 1;
+                end
+                    
+                4'b1110:    begin
+                    SWAP;
+                    //done <= (write_ptr != 0) && (store_ptr == execution_ptr - 1);
+                    done <= 1;
+                end
+
+                4'b1111:    begin
+                    STORE;
+                    //done <= (write_ptr != 0) && (store_ptr == execution_ptr - 1);
+                    done <= 1;
+                end
+
+                5'b10000:   begin
+                    MAC;
+                    done <= (write_ptr != 0) && (execution_ptr == write_ptr - 1);
+                end
+
+                default: begin
+                    done <= 0;
+                end
+            endcase
+
+        end
+
+        // READ SECTION
+        if(read_enable && !read_lock) begin
+            //data_out <= memory[read_ptr];
+            if(word_select == 0) begin
+                data_out <= result[15:0];
+                //read_ptr <= read_ptr + 1;
+                read_lock <= 1; 
+                word_select <= 1;
+            end
+            else if (word_select == 1) begin
+                data_out <= result[31:16];
+                read_lock <= 1;
+                word_select <= 0;
+            end
+            
+        end
+        else if(!read_enable) begin
+            read_lock <= 0;
+        end
+    end
+    
 end
 
 endmodule
