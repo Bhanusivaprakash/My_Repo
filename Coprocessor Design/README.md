@@ -21,6 +21,7 @@ The design is intended as a learning-oriented hardware accelerator that can be c
 | 0100   | DIV       |
 | 0101   | SQUARE    |
 | 0110   | ABS       |
+| 10000  | MAC       |
 
 ### Memory Operations
 
@@ -364,8 +365,6 @@ These tasks simplify simulation and emulate how an external processor would inte
 ## Future Improvements
 
 * Instruction queue
-* Multiple accumulators
-* MAC (Multiply-Accumulate)
 * Fixed-point arithmetic
 * Matrix operations
 * Vector operations
