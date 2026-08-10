@@ -18,7 +18,6 @@ The design is intended as a learning-oriented hardware accelerator that can be c
 | 0001   | ADD       |
 | 0010   | SUB       |
 | 0011   | MUL       |
-| 0100   | DIV       |
 | 0110   | ABS       |
 | 10000  | MAC       |
 
@@ -140,28 +139,6 @@ Example:
 
 ```text
 4 × 2 × 3 = 24
-```
-
----
-
-### DIV
-
-Performs sequential division:
-
-```text
-A ÷ B ÷ C ...
-```
-
-Example:
-
-```text
-24 ÷ 2 ÷ 3 = 4
-```
-
-Division by zero sets:
-
-```verilog
-error = 1
 ```
 
 ---
