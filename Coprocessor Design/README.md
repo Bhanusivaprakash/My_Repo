@@ -19,7 +19,6 @@ The design is intended as a learning-oriented hardware accelerator that can be c
 | 0010   | SUB       |
 | 0011   | MUL       |
 | 0100   | DIV       |
-| 0101   | SQUARE    |
 | 0110   | ABS       |
 | 10000  | MAC       |
 
@@ -163,20 +162,6 @@ Division by zero sets:
 
 ```verilog
 error = 1
-```
-
----
-
-### SQUARE
-
-Squares a value at the selected address.
-
-Example:
-
-```text
-memory[2] = 6
-
-Result = 36
 ```
 
 ---
@@ -365,7 +350,6 @@ These tasks simplify simulation and emulate how an external processor would inte
 ## Future Improvements
 
 * Instruction queue
-* Fixed-point arithmetic
 * Matrix operations
 * Vector operations
 * Interrupt-based completion signal
