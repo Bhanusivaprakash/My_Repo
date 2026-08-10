@@ -1,5 +1,6 @@
 #include "stm32f429xx.h"
 #include <stdint.h>
+#include <stdbool.h>
 
 #define WR_PIN  0
 #define RST_PIN 3
@@ -70,7 +71,7 @@ int main(void)
     /* Write one half-word: present data, raise WR, wait for ACK,
      * drop WR, wait for ACK to actually clear. */
 
-    GPIOD->ODR = 0xCCCD;
+    GPIOD->ODR = 0x3333;
 
     //while (!ack_is_set()) { wr_high(); }
     wr_high();
@@ -78,7 +79,7 @@ int main(void)
     wr_low();
     //while (ack_is_set()) { }
 
-    GPIOD->ODR = 0xFFFD;
+    GPIOD->ODR = 0x0002;
 
   //  while (!ack_is_set()) { wr_high(); }
     wr_high();
@@ -88,18 +89,36 @@ int main(void)
 
     //GPIOC->BSRR = (1U << EXECUTE_PIN);
 
+	GPIOD->ODR = 0x8000;
+	wr_high();
+	hold_min_pulse();
+	wr_low();
+
+    GPIOD->ODR = 0x0003;
+    wr_high();
+	hold_min_pulse();
+	wr_low();
+
     // Clear PE7-PE11
-        GPIOE->ODR &= ~(0x1F << 7);
-        // Set address = 0 (00000)
-        GPIOE->ODR |= (0x00 << 7);
+	GPIOE->ODR &= ~(0x1F << 7);
+	// Set address = 0 (00000)
+	GPIOE->ODR |= (0x00 << 7);
 
 	GPIOA->BSRR = (1U << ADDRESS_ENABLE);
+	hold_min_pulse();
+	GPIOA->BSRR = (1U << (ADDRESS_ENABLE+16));
 
     GPIOE->ODR &= ~(0x1F);
-    GPIOE->ODR |= 0b00110;
-
-    GPIOC->BSRR = (1U << EXECUTE_PIN);
+    GPIOE->ODR |= 0b00010;	// SET OPERATION
 
 
-    while (1);
+
+    GPIOC->BSRR = (1U << EXECUTE_PIN);          // EXECUTE high
+    hold_min_pulse();
+    GPIOC->BSRR = (1U << (EXECUTE_PIN + 16));   // EXECUTE low
+
+    while (!(GPIOA->IDR & (1U << DONE_PIN))) {
+            // Wait for DONE = 1
+    }
+    while(1);
 }
