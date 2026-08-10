@@ -171,7 +171,7 @@ always @(posedge clk) begin
         write_lock <= 0;
         read_lock <= 0;
         error <= 0;
-        result <= 0;;
+        result <= 0;
         ack <= 0;
         
         for(i = 0; i < 32; i = i + 1) begin
