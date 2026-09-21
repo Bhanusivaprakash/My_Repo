@@ -71,7 +71,7 @@ int main(void)
     /* Write one half-word: present data, raise WR, wait for ACK,
      * drop WR, wait for ACK to actually clear. */
 
-    GPIOD->ODR = 0x3333;
+    GPIOD->ODR = 0x0000;
 
     //while (!ack_is_set()) { wr_high(); }
     wr_high();
@@ -89,7 +89,7 @@ int main(void)
 
     //GPIOC->BSRR = (1U << EXECUTE_PIN);
 
-	GPIOD->ODR = 0x8000;
+	GPIOD->ODR = 0x0000;
 	wr_high();
 	hold_min_pulse();
 	wr_low();
@@ -99,18 +99,37 @@ int main(void)
 	hold_min_pulse();
 	wr_low();
 
+	GPIOD->ODR = 0x0000;
+	wr_high();
+	hold_min_pulse();
+	wr_low();
+
+	GPIOD->ODR = 0x0004;
+	wr_high();
+	hold_min_pulse();
+	wr_low();
+
+	GPIOD->ODR = 0x0000;
+	wr_high();
+	hold_min_pulse();
+	wr_low();
+
+	GPIOD->ODR = 0x0005;
+	wr_high();
+	hold_min_pulse();
+	wr_low();
+
     // Clear PE7-PE11
 	GPIOE->ODR &= ~(0x1F << 7);
-	// Set address = 0 (00000)
-	GPIOE->ODR |= (0x00 << 7);
+	// Set address = 0 (00001)
+	GPIOE->ODR |= (0x01 << 7);
 
 	GPIOA->BSRR = (1U << ADDRESS_ENABLE);
 	hold_min_pulse();
 	GPIOA->BSRR = (1U << (ADDRESS_ENABLE+16));
 
     GPIOE->ODR &= ~(0x1F);
-    GPIOE->ODR |= 0b00010;	// SET OPERATION
-
+    GPIOE->ODR |= 0b01110;	// SET OPERATION
 
 
     GPIOC->BSRR = (1U << EXECUTE_PIN);          // EXECUTE high
