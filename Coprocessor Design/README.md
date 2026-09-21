@@ -42,6 +42,9 @@ The coprocessor performs arithmetic operations inside the FPGA and returns resul
               └─────────────────┘
 ```
 
+<img width="1280" height="853" alt="image" src="https://github.com/user-attachments/assets/e3dd70b3-8387-45d2-96dd-4a9c77dbaeb9" />
+
+
 ## Features
 
 * Verilog RTL implementation
