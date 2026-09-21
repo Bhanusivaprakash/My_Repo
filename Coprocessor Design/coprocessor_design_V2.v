@@ -106,8 +106,8 @@ reg signed [31:0] temp;
 begin
     temp = memory[address];
 
-    memory[address]   <= memory[address + 1];
-    memory[address+1] <= temp;
+    memory[address]   <= memory[address - 1];
+    memory[address - 1] <= temp;
 end
 endtask
 
@@ -295,7 +295,7 @@ end
 ila_0 ila_dbg (
 	.clk(clk), // input wire clk
 	.probe0(result), // input wire [31:0] probe0
-	.probe1(memory[0]),
+	.probe1(memory[1]),
 	.probe2(operation),
 	.probe3(address),
 	.probe4(rst),
