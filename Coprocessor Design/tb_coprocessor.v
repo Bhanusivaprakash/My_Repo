@@ -83,7 +83,7 @@ task read;
         @(negedge clk);
         read_enable = 0;
 
-        $display("mem0=%0d mem1=%0d mem3=%0d",
+        $display("mem0=%0h mem1=%0h mem3=%0h",
                 cp.memory[0],
                 cp.memory[1],cp.memory[2]);
 
@@ -91,8 +91,7 @@ task read;
                 cp.write_ptr,
                 cp.execution_ptr);
 
-        $display("result=%0d",
-                data_out);
+        $display("result=%04h", data_out);
     end
 endtask
 
@@ -112,14 +111,29 @@ initial begin
     @(negedge clk);
     rst = 0;
 
-    write(4);
-    write(2);
-    load(4'b0100, 0); //div
+    load(4'b0000, 0);   //clear sum-acc, prod-acc
     exec();
 
-    //load(4'b1111, 0); //store
-    //exec();
+    // 0.4
+    write(16'h6666);
+    write(16'h0000);
 
+    // 0.8
+    write(16'hCCCC);
+    write(16'h0000);
+
+    // 0.3
+    write(16'h4CCD);
+    write(16'h0000);
+
+    // 0.5
+    write(16'h8000);
+    write(16'h0000);
+
+    load(5'b10000, 0);
+    exec();
+
+    read();
     read();
 
     $display("\n---------------------------------------------------");
@@ -127,7 +141,7 @@ initial begin
     $display("---------------------------------------------------");
 
     for (j = 0; j < 6; j = j + 1) begin
-        $display("[%0d]\t%0d\t\t%0d",
+        $display("[%0d]\t%0h\t\t%0h",
                 j,
                 cp.memory[j],
                 cp.op_memory[j]);
