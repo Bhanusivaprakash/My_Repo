@@ -1,14 +1,17 @@
+ENTRY(Reset_Handler)
+
+_estack = ORIGIN(RAM) + LENGTH(RAM);
 
 MEMORY
 {
 	FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 2M
-	RAM	  (xrw) : ORIGIN = 0x20000000, LENGTH = 256K
+	RAM	  (xrw) : ORIGIN = 0x20000000, LENGTH = 192K
 }
 
 SECTIONS
 {
 	/* isr_vector output from the linker, KEEP ensures that isr_vector is not discarded by the linker as it has no labels*/
-	.isr_vector :
+	.isr_vector 0x08000000 :
 	{
 		KEEP (*(.isr_vector))	
 	} > FLASH
