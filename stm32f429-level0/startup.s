@@ -1,13 +1,18 @@
+.syntax unified
+.cpu cortex-m4
+.thumb
+
 .global Reset_Handler
 .global _sidata
 .global _sdata
 .global _edata
 .global _sbss
 .global _ebss
+.global _estack
 
-.section .isr_vector
+.section .isr_vector, "a", %progbits
 
-.word 0x20040000
+.word _estack
 .word Reset_Handler
 
 .section .text
@@ -24,23 +29,27 @@ Reset_Handler:
 	MOV R6, #0
 
 	copy_data:
-		LDR R2, [R0]		// Load the 32-bit value present in the address held by R0
+		CMP R1, R3
+		BEQ initialize_data
 
-		STR R2, [R1]		// STORE the 32-bit value into RAM location of address held by R1
-		
+		LDR R2, [R0]
+		STR R2, [R1]
+
 		ADD R0, R0, #4
-		ADD R1, R1, #4		// Increasing R0 and R1 by 4 bytes to write the upcoming data from FLASH into RAM
+		ADD R1, R1, #4
 
-		CMP R1, R3			// Checking if the CPU has reached _edata
-
-		BNE copy_data		// If _edata not yet reached, repeat.
+		B copy_data
 
 	initialize_data:
-		STR R6, [R4]		// Writes 0 to the address held by R4
-		ADD R4, R4, #4		// Increases R4 by 4 bytes, so that next address is also zeroed.
-		CMP R4, R5			// Compares _sbss and _ebss. If not zero, repeat.
-		BNE initialize_data
+		CMP R4, R5
+		BEQ boot_main
 
+		STR R6, [R4]
+		ADD R4, R4, #4
+
+		B initialize_data
+
+	boot_main:
 		B main
 
 	
